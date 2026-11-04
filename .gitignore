@@ -1,0 +1,14 @@
+# Binaries
+/bin/
+*.exe
+
+# Test output
+coverage.out
+coverage.html
+
+# Local environment
+.env
+
+# Editors
+.idea/
+.vscode/

@@ -1,0 +1,36 @@
+services:
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DB: user_management
+      # Set JWT_SECRET in a .env file next to this compose file (see .env.example).
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set (copy .env.example to .env)}
+      JWT_TTL: ${JWT_TTL:-24h}
+      LOG_FORMAT: json
+    # Give in-flight requests time to finish on `docker compose stop`.
+    stop_grace_period: 20s
+
+volumes:
+  mongo-data:
